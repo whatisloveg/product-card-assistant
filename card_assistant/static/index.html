@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Карточка товара КИП</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%231f5fd1'/%3E%3Cpath d='M8 8 11.5 4.5' stroke='white' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f5f6f8; --panel: #fff; --text: #1d2330; --muted: #6b7385; --line: #e2e5eb;
+    --accent: #1f5fd1; --accent-soft: #e8effc; --warn: #8a5a00; --warn-bg: #fff6e0;
+    --err: #a3261b; --err-bg: #fdecea; --ok: #1d7a46; --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { padding: 18px 24px; border-bottom: 1px solid var(--line); background: var(--panel); display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 19px; }
+  header .hint { color: var(--muted); font-size: 13px; }
+  #health { margin-left: auto; font-size: 13px; color: var(--muted); }
+  main { display: grid; grid-template-columns: minmax(320px, 440px) 1fr; gap: 20px; padding: 20px 24px; max-width: 1400px; margin: 0 auto; align-items: start; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; padding: 16px; } }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; min-width: 0; }
+  h2 { font-size: 16px; margin: 0 0 12px; }
+  h3 { font-size: 14px; margin: 18px 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+  label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 4px; }
+  input, textarea { width: 100%; font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--text); }
+  textarea { resize: vertical; }
+  #json { font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; min-height: 340px; }
+  button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line); background: #fff; padding: 7px 12px; color: var(--text); }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); padding: 10px 16px; width: 100%; margin-top: 16px; font-weight: 600; }
+  button.primary:disabled { opacity: .6; cursor: progress; }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 12px; flex-wrap: wrap; }
+  .tabs button { border: none; border-bottom: 2px solid transparent; border-radius: 0; padding: 8px 12px; color: var(--muted); }
+  .tabs button.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+  .examples { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+  .examples button { font-size: 13px; padding: 5px 10px; background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+  .spec-row { display: grid; grid-template-columns: 1fr 1fr 32px; gap: 6px; margin-bottom: 6px; }
+  .spec-row button { padding: 0; color: var(--muted); }
+  .muted { color: var(--muted); }
+  .placeholder { color: var(--muted); text-align: center; padding: 60px 20px; }
+  .error { background: var(--err-bg); color: var(--err); padding: 12px 14px; border-radius: 8px; }
+  .error ul { margin: 6px 0 0; padding-left: 20px; }
+  .result-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .badge { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); margin-left: 6px; vertical-align: middle; font-weight: 500; }
+  .badge.bad { background: var(--err-bg); color: var(--err); }
+  .seo-title { font-size: 20px; font-weight: 650; margin: 4px 0 10px; }
+  .seo-desc p { margin: 0 0 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  td { border-top: 1px solid var(--line); padding: 6px 8px; vertical-align: top; }
+  td:first-child { color: var(--muted); width: 42%; }
+  td.nodata { color: var(--muted); font-style: italic; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips span { background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; font-size: 13px; }
+  .box { border-radius: 8px; padding: 10px 14px; margin-top: 8px; }
+  .box ul { margin: 4px 0; padding-left: 20px; }
+  .box.warn { background: var(--warn-bg); color: var(--warn); }
+  .box.err { background: var(--err-bg); color: var(--err); }
+  .box.manager { background: var(--bg); }
+  pre { white-space: pre-wrap; word-break: break-word; background: var(--bg); border-radius: 8px; padding: 12px; font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0; max-height: 70vh; overflow: auto; }
+  .meta { font-size: 12px; color: var(--muted); margin-top: 16px; }
+  .copied { color: var(--ok); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Карточка товара КИП</h1>
+  <span class="hint">черновик для B2B-магазина: SEO, характеристики, запросы, блок для менеджера</span>
+  <span id="health"></span>
+</header>
+
+<main>
+  <section>
+    <h2>Данные о приборе</h2>
+    <div class="examples" id="examples"></div>
+    <div class="tabs" role="tablist">
+      <button type="button" class="active" data-mode="form">Форма</button>
+      <button type="button" data-mode="json">JSON</button>
+    </div>
+
+    <form id="form" autocomplete="off">
+      <div id="mode-form">
+        <label for="name">Название *</label>
+        <input id="name" placeholder="Манометр показывающий DM 02">
+        <label for="manufacturer">Производитель</label>
+        <input id="manufacturer" placeholder="Манотомь">
+        <label>Характеристики</label>
+        <div id="specs"></div>
+        <button type="button" id="add-spec">+ характеристика</button>
+        <label for="description">Описание или фрагмент паспорта</label>
+        <textarea id="description" rows="6" placeholder="Прибор предназначен для измерения избыточного давления…"></textarea>
+      </div>
+      <div id="mode-json" hidden>
+        <label for="json">JSON с полями name, manufacturer, specs, description</label>
+        <textarea id="json" spellcheck="false"></textarea>
+      </div>
+      <button type="submit" class="primary" id="submit">Сформировать карточку</button>
+    </form>
+  </section>
+
+  <section id="result">
+    <div class="placeholder">Заполните форму или выберите пример — черновик карточки появится здесь.</div>
+  </section>
+</main>
+
+<script>
+const $ = (sel) => document.querySelector(sel);
+const NO_DATA = "данных нет";
+let mode = "form";
+let lastResponse = null;
+
+function el(tag, props = {}, ...children) {
+  // Текст модели вставляем только через textContent — никакого innerHTML.
+  const node = document.createElement(tag);
+  Object.assign(node, props);
+  for (const child of children) node.append(child);
+  return node;
+}
+
+function addSpecRow(key = "", value = "") {
+  const keyInput = el("input", { placeholder: "диапазон измерений", value: key });
+  const valueInput = el("input", { placeholder: "0–1,6 МПа", value });
+  const remove = el("button", { type: "button", title: "Удалить", textContent: "×" });
+  const row = el("div", { className: "spec-row" }, keyInput, valueInput, remove);
+  remove.onclick = () => row.remove();
+  $("#specs").append(row);
+}
+
+function readForm() {
+  const specs = {};
+  for (const row of document.querySelectorAll(".spec-row")) {
+    const [key, value] = row.querySelectorAll("input");
+    if (key.value.trim()) specs[key.value.trim()] = value.value.trim();
+  }
+  return { name: $("#name").value, manufacturer: $("#manufacturer").value, specs, description: $("#description").value };
+}
+
+function fillForm(data) {
+  $("#name").value = data.name ?? "";
+  $("#manufacturer").value = data.manufacturer ?? "";
+  $("#description").value = data.description ?? "";
+  $("#specs").replaceChildren();
+  const specs = data.specs && typeof data.specs === "object" ? data.specs : {};
+  for (const [key, value] of Object.entries(specs)) addSpecRow(key, value ?? "");
+  if (!Object.keys(specs).length) addSpecRow();
+}
+
+function setMode(next) {
+  if (next === mode) return;
+  if (next === "json") {
+    $("#json").value = JSON.stringify(readForm(), null, 2);
+  } else {
+    try { fillForm(JSON.parse($("#json").value)); }
+    catch { showError({ error: "В поле JSON некорректный JSON — исправьте его или продолжайте в режиме JSON." }); return; }
+  }
+  mode = next;
+  $("#mode-form").hidden = mode !== "form";
+  $("#mode-json").hidden = mode !== "json";
+  document.querySelectorAll("[data-mode]").forEach((b) => b.classList.toggle("active", b.dataset.mode === mode));
+}
+
+function showError(payload) {
+  const box = el("div", { className: "error" }, el("strong", { textContent: payload.error || "Ошибка" }));
+  const details = payload.details || payload.missing;
+  if (details?.length) box.append(el("ul", {}, ...details.map((d) => el("li", { textContent: d }))));
+  $("#result").replaceChildren(box);
+}
+
+function lengthBadge(length, ok, label) {
+  return el("span", { className: "badge" + (ok ? "" : " bad"), textContent: `${length} ${label}` });
+}
+
+function renderCard(card) {
+  const meta = card.meta;
+  const preview = el("div");
+  preview.append(
+    el("h3", {}, "SEO-заголовок", lengthBadge(meta.title_length, meta.title_length <= 70, "/ 70")),
+    el("div", { className: "seo-title", textContent: card.seo_title }),
+    el("h3", {}, "SEO-описание", lengthBadge(meta.description_length,
+      meta.description_length >= 800 && meta.description_length <= 1200, "симв., нужно 800–1200")),
+    el("div", { className: "seo-desc" }, ...card.seo_description.split(/\n+/).map((p) => el("p", { textContent: p }))),
+    el("h3", { textContent: "Характеристики" }),
+    el("table", {}, ...card.specs.map((s) => el("tr", {},
+      el("td", { textContent: s.name }),
+      el("td", { textContent: s.value, className: s.value === NO_DATA ? "nodata" : "", title: s.source })))),
+    el("h3", { textContent: "Поисковые запросы" }),
+    el("div", { className: "chips" }, ...card.search_queries.map((q) => el("span", { textContent: q }))),
+    el("h3", { textContent: "Для менеджера" }),
+    el("div", { className: "box manager" },
+      el("strong", { textContent: "Кому подходит" }), el("ul", {}, ...card.commercial.audience.map((a) => el("li", { textContent: a }))),
+      el("strong", { textContent: "Какие задачи решает" }), el("ul", {}, ...card.commercial.tasks.map((t) => el("li", { textContent: t }))),
+      el("p", { textContent: card.commercial.summary })),
+  );
+  if (card.missing.length) preview.append(el("h3", { textContent: "Требует уточнения" }), el("div", { className: "box warn" },
+    el("ul", {}, ...card.missing.map((m) => el("li", {}, el("strong", { textContent: m.name }), ` — ${m.why}`)))));
+  if (card.warnings.length) preview.append(el("h3", { textContent: "Проверьте вручную" }), el("div", { className: "box err" },
+    el("ul", {}, ...card.warnings.map((w) => el("li", { textContent: w })))));
+  preview.append(el("div", { className: "meta", textContent:
+    `Модель: ${meta.model} · попыток: ${meta.attempts} · запросов к LLM: ${meta.llm_calls} · ${meta.elapsed_sec} с` }));
+  return preview;
+}
+
+function showResult(response) {
+  lastResponse = response;
+  const views = {
+    card: () => renderCard(response.card),
+    markdown: () => el("pre", { textContent: response.markdown }),
+    json: () => el("pre", { textContent: JSON.stringify(response.card, null, 2) }),
+    text: () => el("pre", { textContent: response.text }),
+  };
+  const copySource = { card: response.markdown, markdown: response.markdown,
+    json: JSON.stringify(response.card, null, 2), text: response.text };
+  const body = el("div");
+  const copy = el("button", { type: "button", textContent: "Копировать" });
+  const tabs = el("div", { className: "tabs" });
+  let current = "card";
+  const open = (name) => {
+    current = name;
+    body.replaceChildren(views[name]());
+    tabs.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b.dataset.view === name));
+  };
+  for (const [name, label] of [["card", "Карточка"], ["markdown", "Markdown"], ["json", "JSON"], ["text", "Текст"]]) {
+    const button = el("button", { type: "button", textContent: label });
+    button.dataset.view = name;
+    button.onclick = () => open(name);
+    tabs.append(button);
+  }
+  copy.onclick = async () => {
+    await navigator.clipboard.writeText(copySource[current]);
+    copy.textContent = "Скопировано"; copy.classList.add("copied");
+    setTimeout(() => { copy.textContent = "Копировать"; copy.classList.remove("copied"); }, 1500);
+  };
+  $("#result").replaceChildren(el("div", { className: "result-head" }, el("h2", { textContent: "Черновик карточки" }), copy), tabs, body);
+  open("card");
+}
+
+async function submit(event) {
+  event.preventDefault();
+  let body;
+  if (mode === "json") {
+    body = $("#json").value;
+    try { JSON.parse(body); } catch (e) { showError({ error: "Некорректный JSON", details: [e.message] }); return; }
+  } else {
+    body = JSON.stringify(readForm());
+  }
+  const button = $("#submit");
+  const started = Date.now();
+  button.disabled = true;
+  const timer = setInterval(() => { button.textContent = `Модель пишет и проверяет черновик… ${Math.round((Date.now() - started) / 1000)} с`; }, 500);
+  $("#result").replaceChildren(el("div", { className: "placeholder", textContent: "Обычно это занимает 30–60 секунд: черновик, проверка фактов и, если нужно, исправление." }));
+  try {
+    const res = await fetch("/api/cards", { method: "POST", headers: { "Content-Type": "application/json" }, body });
+    const payload = await res.json().catch(() => ({ error: `Сервер ответил ${res.status}` }));
+    res.ok ? showResult(payload) : showError(payload);
+  } catch (e) {
+    showError({ error: "Сервис недоступен", details: [e.message] });
+  } finally {
+    clearInterval(timer);
+    button.disabled = false;
+    button.textContent = "Сформировать карточку";
+  }
+}
+
+async function init() {
+  addSpecRow();
+  document.querySelectorAll("[data-mode]").forEach((b) => b.onclick = () => setMode(b.dataset.mode));
+  $("#add-spec").onclick = () => addSpecRow();
+  $("#form").onsubmit = submit;
+  try {
+    const health = await (await fetch("/api/health")).json();
+    $("#health").textContent = `модель ${health.model}` + (health.api_key_configured ? "" : " · ключ API не задан");
+  } catch { /* не критично */ }
+  try {
+    const examples = await (await fetch("/api/examples")).json();
+    for (const example of examples) {
+      // У пограничных случаев есть _comment — сервис его игнорирует, а в кнопке он понятнее названия.
+      const label = example.data._comment?.split(":")[0] ?? example.data.name;
+      const button = el("button", { type: "button", textContent: `Пример: ${label}` });
+      button.onclick = () => {
+        fillForm(example.data);
+        if (mode === "json") $("#json").value = JSON.stringify(example.data, null, 2);
+      };
+      $("#examples").append(button);
+    }
+  } catch { /* примеры не обязательны */ }
+}
+init();
+</script>
+</body>
+</html>
